@@ -1,0 +1,56 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+  - none
+
+pool:
+  vmImage: ubuntu-latest
+
+parameters:
+  - name: ImageRepoServiceConnection
+    type: string
+    default: kg-dockerhub
+    displayName: DockerHub Service Connection
+
+  - name: TF_VERSION
+    type: string
+    default: 1.0.4
+    displayName: Terraform Version
+
+  - name: repository
+    type: string
+    default: kgopi1/azselfhostedagent
+    displayName: ContainerRepository
+
+stages:
+  - stage: DockerBuild
+    displayName: Docker Build
+    jobs:
+      - job: dockerloginpush
+        displayName: DockerCI
+        steps:
+          - task: Docker@2
+            displayName: DockerBuild
+            inputs:
+              containerRegistry: ${{ parameters.ImageRepoServiceConnection }}
+              command: "build"
+              Dockerfile: "**/Dockerfile"
+              repository: ${{ parameters.repository }}
+              arguments: --build-arg TF_VERSION=${{ parameters.TF_VERSION  }}
+              tags: |
+                $(Build.BuildId)
+                latest
+
+          - task: Docker@2
+            displayName: DockerPush
+            inputs:
+              containerRegistry: ${{ parameters.ImageRepoServiceConnection }}
+              command: "push"
+              Dockerfile: "**/Dockerfile"
+              repository: ${{ parameters.repository }}
+              tags: |
+                $(Build.BuildId)
+                latest
