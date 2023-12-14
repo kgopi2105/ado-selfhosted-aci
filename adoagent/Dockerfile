@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:22.04
 
 # To make it easier for build and release pipelines to run apt-get,
 # configure apt to not require confirmation (assume the -y argument by default)
@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     iputils-ping \
     libcurl4 \
-    libicu60 \
+    libicu70 \
     libunwind8 \
     netcat \
     libssl1.0 \
@@ -27,7 +27,7 @@ RUN curl -LsS https://aka.ms/InstallAzureCLIDeb | bash \
     && rm -rf /var/lib/apt/lists/*
 
 ARG TARGETARCH=amd64
-ARG AGENT_VERSION=2.185.1
+ARG AGENT_VERSION
 ARG TF_VERSION
 
 RUN echo ${TF_VERSION}
@@ -51,5 +51,7 @@ RUN if [ "$TARGETARCH" = "amd64" ]; then \
 
 COPY ./start.sh .
 RUN chmod +x start.sh
+
+RUN ./bin/installdependencies.sh
 
 ENTRYPOINT [ "./start.sh" ]
